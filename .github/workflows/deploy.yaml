@@ -1,0 +1,57 @@
+name: Deploy to Deploy Branch
+
+on:
+  push:
+    branches:
+      - main # Trigger on push to the main branch
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Get the last commit message from main branch
+        id: get_commit_msg
+        run: |
+          # Fetch the latest commit message from the main branch
+          git fetch origin main
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B origin/main)
+          echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_ENV
+
+      - name: Deploy to deploy branch
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git fetch https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git deploy || true
+          git switch -c deploy || git switch deploy
+          git rm -rf . # Remove all files from repo
+
+          mv dist/* .   # Move build files to root
+          rm -rf dist   # Delete dist folder after moving contents
+
+          echo "node_modules" > .gitignore  # Ensure node_modules is ignored
+          git add .  # Add all files in root
+
+          # Use the commit message from the previous step and format it
+          git commit -m "Deploy of '${{ env.commit_message }}'"
+
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git deploy --force
