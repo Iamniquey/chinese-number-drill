@@ -15,7 +15,7 @@ interface GameScreenProps {
 export default function GameScreen({
   phrase,
   ttsText,
-  answer,
+  // answer,
   onAnswer,
   feedbackState,
   onReplay,

@@ -1,6 +1,6 @@
 // Chinese number characters
 const CHINESE_DIGITS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-const CHINESE_UNITS = ['', '十', '百', '千', '万'];
+// const CHINESE_UNITS = ['', '十', '百', '千', '万'];
 
 /**
  * Convert a single digit (0-9) to Chinese
